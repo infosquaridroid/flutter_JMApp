@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:jmapp/data_manager_inherited_widget.dart';
 import 'package:jmapp/helpers/constants.dart';
 import 'package:jmapp/helpers/strings.dart';
@@ -39,14 +41,16 @@ class SignupDetailState extends State<SignupDetail> {
       print(datas);
       if(datas["status"] == true)
       {
-        SharePreferencesHelper.getInstant().setString(SharePreferencesHelper.SHAREPREFERENCES_USER_ID, datas["data"]["id"]);
+        SharePreferencesHelper.getInstant().setString(
+            SharePreferencesHelper.SHAREPREFERENCES_USER_Data,
+            jsonEncode(datas["data"]));
        lastLogin(datas["data"]["id"]);
       }
       else
       {
         Utility.showAlertDialogCallBack(
             context: context,
-            message: datas["error"]);
+            message: datas["message"]);
       }
     }
   }
@@ -55,6 +59,8 @@ class SignupDetailState extends State<SignupDetail> {
         .of(context)
         .apiRepos
         .lastLogin(context: context, user_id:userId);
+    SharePreferencesHelper.getInstant().setString(SharePreferencesHelper.SHAREPREFERENCES_USER_ID, userId);
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -68,10 +74,10 @@ class SignupDetailState extends State<SignupDetail> {
       appBar: AppBar(
         title: Image.asset(
           ImageAssets.main_icon,
-          width: 150,
+          height: 40,
           fit: BoxFit.contain,
         ),
-        backgroundColor: ColorsHelper.themeColor,
+        backgroundColor: ColorsHelper.headerColor,
 
         actions: [
           Container(
@@ -119,7 +125,7 @@ class SignupDetailState extends State<SignupDetail> {
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
+        width: MediaQuery.of(context).size.width,color: ColorsHelper.bodyColor,
         child: SafeArea(
           child: ListView(
             physics: new ClampingScrollPhysics(),
@@ -155,7 +161,7 @@ class SignupDetailState extends State<SignupDetail> {
                   padding: const EdgeInsets.only(left: 10, right: 10),
                   width: MediaQuery.of(context).size.width - 40,
                   child: Center(
-                    child: TextField(
+                    child: TextField(textCapitalization: TextCapitalization.sentences,
                       style: TextStyle(fontWeight: FontWeight.w500),
                       cursorColor: ColorsHelper.themeColor,
                       controller: txtFirstName,
@@ -194,7 +200,7 @@ class SignupDetailState extends State<SignupDetail> {
                   padding: const EdgeInsets.only(left: 10, right: 10),
                   width: MediaQuery.of(context).size.width - 40,
                   child: Center(
-                    child: TextField(
+                    child: TextField(textCapitalization: TextCapitalization.sentences,
                       style: TextStyle(fontWeight: FontWeight.w500),
                       cursorColor: ColorsHelper.themeColor,
                       controller: txtLastName,

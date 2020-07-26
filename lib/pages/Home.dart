@@ -30,15 +30,15 @@ class HomeState extends State<Home> {
       appBar: AppBar(
         title: Image.asset(
           ImageAssets.main_icon,
-          width: 150,
+          height: 40,
           fit: BoxFit.contain,
         ),
-        backgroundColor: ColorsHelper.themeColor,
+        backgroundColor: ColorsHelper.headerColor,
         leading: Container(),
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
+        width: MediaQuery.of(context).size.width,color: ColorsHelper.bodyColor,
         child: SafeArea(
           child: ListView(
             physics: new ClampingScrollPhysics(),

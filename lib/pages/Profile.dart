@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:jmapp/helpers/flag.dart';
 import 'package:flutter_picker/flutter_picker.dart';
 import 'package:jmapp/data_manager_inherited_widget.dart';
 import 'package:jmapp/helpers/constants.dart';
@@ -38,99 +41,102 @@ class ProfileState extends State<Profile> {
   bool isUpdateEmail = false;
   int selectedCountry = -1;
   int selectedTimezone = -1;
+  var userData;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    SharePreferencesHelper.getInstant()
-        .getString(SharePreferencesHelper.SHAREPREFERENCES_USER_ID)
-        .then((value) {
-      userId = value;
       getUser();
-    });
   }
 
   void getUser() async {
-    Map<String, dynamic> datas = await DataManagerInheritedWidget.of(context)
-        .apiRepos
-        .getUserDetail(context: context, user_id: userId);
-    if (datas != null) {
-      print(datas);
-      if (datas["status"] == true) {
-        var data = datas["data"];
-        txtFirstName.text = data["first_name"];
-        txtLastName.text = data["last_name"];
-        txtAddress1.text = data["street"];
-        txtState.text = data["state"];
-        txtCity.text = data["city"];
-        txtZip.text = data["postcode"];
-        isEmailVerified = data["verified"] == "Yes";
-        email = data["email"];
-        txtEmail.text = data["email"];
-        mobile = data["mobile"];
-        countryCode = data["country_code"];
-        role = data["role"];
-        for(int i=0;i<countryData.country.length;i++)
-          {
-            if(countryData.country[i]["name"] == data["country"])
-              {
-                selectedCountry = i;
-              }
-          }
-        for(int i=0;i<timezoneData.timezone.length;i++)
-        {
-          if(timezoneData.timezone[i]["name"] == data["time_zone"])
-          {
-            selectedTimezone = i;
-          }
-        }
-        setState(() {});
+    userId = await SharePreferencesHelper.getInstant()
+        .getString(SharePreferencesHelper.SHAREPREFERENCES_USER_ID);
+    userData = jsonDecode(await SharePreferencesHelper.getInstant()
+        .getString(SharePreferencesHelper.SHAREPREFERENCES_USER_Data));
+    txtFirstName.text = userData["first_name"];
+    txtLastName.text = userData["last_name"];
+    txtAddress1.text = userData["street"];
+    txtState.text = userData["state"];
+    txtCity.text = userData["city"];
+    txtZip.text = userData["postcode"];
+    isEmailVerified = userData["verified"] == "Yes";
+    email = userData["email"];
+    txtEmail.text = userData["email"];
+    mobile = userData["mobile"];
+    countryCode = userData["country_code"];
+    role = userData["role"] == null ? "Admin" : userData["role"];
+    for (int i = 0; i < countryData.country.length; i++) {
+      if (countryData.country[i]["countries_name"] == userData["country"]) {
+        selectedCountry = i;
       }
     }
+    for (int i = 0; i < timezoneData.timezone.length; i++) {
+      if (timezoneData.timezone[i]["name"] == userData["time_zone"]) {
+        selectedTimezone = i;
+      }
+    }
+    setState(() {});
   }
 
   void update() async {
-    Map<String, dynamic> datas =
-        await DataManagerInheritedWidget.of(context).apiRepos.updateUserDetail(
-              context: context,
-              first_name: txtFirstName.text,
-              last_name: txtLastName.text,
-              email: txtEmail.text,
-              address: txtAddress1.text,
-              city: txtCity.text,
-              country: countryData.country[selectedCountry]["name"],
-              time_zone: timezoneData.timezone[selectedTimezone]["name"],
-              postcode: txtZip.text,
-              state: txtState.text,role: role,user_id: userId
-            );
+    Map<String, dynamic> datas = await DataManagerInheritedWidget.of(context)
+        .apiRepos
+        .updateUserDetail(
+            context: context,
+            first_name: txtFirstName.text,
+            last_name: txtLastName.text,
+            email: txtEmail.text,
+            address: txtAddress1.text,
+            city: txtCity.text,
+            country: countryData.country[selectedCountry]["countries_name"],
+            time_zone: timezoneData.timezone[selectedTimezone]["name"],
+            postcode: txtZip.text,
+            state: txtState.text,
+            role: role,
+            user_id: userId);
     if (datas != null) {
       print(datas);
       if (datas["status"] == true) {
+        userData["first_name"] = txtFirstName.text;
+        userData["last_name"] = txtLastName.text;
+        userData["email"] = txtEmail.text;
+        userData["street"] = txtAddress1.text;
+        userData["city"] = txtCity.text;
+        userData["country"] = countryData.country[selectedCountry]["countries_name"];
+        userData["time_zone"] = timezoneData.timezone[selectedTimezone]["name"];
+        userData["postcode"] = txtZip.text;
+        userData["state"] = txtState.text;
+        userData["role"] = role;
+        SharePreferencesHelper.getInstant()
+            .setString(SharePreferencesHelper.SHAREPREFERENCES_USER_Data,jsonEncode(userData));
         Utility.showAlertDialogCallBack(
-            context: context, message: datas["message"],isOnlyOK: true,onOkClick: (){
-              Navigator.pop(context);
-        });
+            context: context, message: datas["message"]);
       } else {
         Utility.showAlertDialogCallBack(
-            context: context, message: datas["error"]);
+            context: context, message: datas["message"]);
       }
     }
   }
+
   void moveToSecondPage() async {
-    final information = await  Navigator.push(
+    final information = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) =>
-              MobileNumberUpdate(mobileNo: mobile,code: countryCode,)),
+          builder: (context) => MobileNumberUpdate(
+                mobileNo: mobile,
+                code: countryCode,
+              )),
     );
-    mobile = information["mobile"];
-    countryCode = information["country_code"];
-    setState(() {
-
-    });
+    if (information != null) {
+      mobile = information["mobile"];
+      countryCode = information["country_code"];
+    }
+    setState(() {});
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,11 +146,12 @@ class ProfileState extends State<Profile> {
           'Profile',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: ColorsHelper.themeColor,
+        backgroundColor: ColorsHelper.headerColor,
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
+        color: ColorsHelper.bodyColor,
         child: SafeArea(
           child: Container(
             child: ListView(
@@ -160,6 +167,7 @@ class ProfileState extends State<Profile> {
                 custom.ExpansionTile(
                   headerBackgroundColor: Colors.transparent,
                   iconColor: Colors.black,
+                  initiallyExpanded: true,
                   title: Text(
                     "Personal details",
                     style: TextStyle(
@@ -187,7 +195,7 @@ class ProfileState extends State<Profile> {
                         padding: const EdgeInsets.only(left: 10, right: 10),
                         width: MediaQuery.of(context).size.width - 40,
                         child: Center(
-                          child: TextField(
+                          child: TextField(textCapitalization: TextCapitalization.sentences,
                             style: TextStyle(fontWeight: FontWeight.w500),
                             cursorColor: ColorsHelper.themeColor,
                             controller: txtFirstName,
@@ -228,7 +236,7 @@ class ProfileState extends State<Profile> {
                         padding: const EdgeInsets.only(left: 10, right: 10),
                         width: MediaQuery.of(context).size.width - 40,
                         child: Center(
-                          child: TextField(
+                          child: TextField(textCapitalization: TextCapitalization.sentences,
                             style: TextStyle(fontWeight: FontWeight.w500),
                             cursorColor: ColorsHelper.themeColor,
                             controller: txtLastName,
@@ -382,9 +390,10 @@ class ProfileState extends State<Profile> {
                       width: MediaQuery.of(context).size.width,
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       margin: EdgeInsets.only(top: 5),
-                      child: InkWell(onTap: (){
-                       moveToSecondPage();
-                      },
+                      child: InkWell(
+                        onTap: () {
+                          moveToSecondPage();
+                        },
                         child: Text(
                           'Update mobile number',
                           textAlign: TextAlign.left,
@@ -407,6 +416,7 @@ class ProfileState extends State<Profile> {
                 custom.ExpansionTile(
                     headerBackgroundColor: Colors.transparent,
                     iconColor: Colors.black,
+                    initiallyExpanded: true,
                     title: Text(
                       "Location",
                       style: TextStyle(
@@ -434,7 +444,7 @@ class ProfileState extends State<Profile> {
                           padding: const EdgeInsets.only(left: 10, right: 10),
                           width: MediaQuery.of(context).size.width - 40,
                           child: Center(
-                            child: TextField(
+                            child: TextField(textCapitalization: TextCapitalization.sentences,
                               style: TextStyle(fontWeight: FontWeight.w500),
                               cursorColor: ColorsHelper.themeColor,
                               controller: txtAddress1,
@@ -460,7 +470,7 @@ class ProfileState extends State<Profile> {
                           padding: const EdgeInsets.only(left: 10, right: 10),
                           width: MediaQuery.of(context).size.width - 40,
                           child: Center(
-                            child: TextField(
+                            child: TextField(textCapitalization: TextCapitalization.sentences,
                               style: TextStyle(fontWeight: FontWeight.w500),
                               cursorColor: ColorsHelper.themeColor,
                               controller: txtCity,
@@ -485,7 +495,7 @@ class ProfileState extends State<Profile> {
                           padding: const EdgeInsets.only(left: 10, right: 10),
                           width: MediaQuery.of(context).size.width - 40,
                           child: Center(
-                            child: TextField(
+                            child: TextField(textCapitalization: TextCapitalization.sentences,
                               style: TextStyle(fontWeight: FontWeight.w500),
                               cursorColor: ColorsHelper.themeColor,
                               controller: txtState,
@@ -511,7 +521,7 @@ class ProfileState extends State<Profile> {
                         child: Container(
                           padding: const EdgeInsets.only(left: 10, right: 10),
                           child: Center(
-                            child: TextField(
+                            child: TextField(textCapitalization: TextCapitalization.sentences,
                               style: TextStyle(fontWeight: FontWeight.w500),
                               cursorColor: ColorsHelper.themeColor,
                               controller: txtZip,
@@ -538,7 +548,7 @@ class ProfileState extends State<Profile> {
                           width: MediaQuery.of(context).size.width - 40,
                           child: InkWell(
                             onTap: () {
-                              showCountryPicker(context);
+                              showCountryDialogCallBack(context: context);
                             },
                             child: Row(
                               children: <Widget>[
@@ -547,7 +557,7 @@ class ProfileState extends State<Profile> {
                                     selectedCountry == -1
                                         ? ''
                                         : countryData.country[selectedCountry]
-                                            ["name"],
+                                            ["countries_name"],
                                     style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 17),
@@ -597,7 +607,7 @@ class ProfileState extends State<Profile> {
                           width: MediaQuery.of(context).size.width - 40,
                           child: InkWell(
                             onTap: () {
-                              showTimezonePicker(context);
+                              showTimezoneDialogCallBack(context: context);
                             },
                             child: Row(
                               children: <Widget>[
@@ -762,115 +772,136 @@ class ProfileState extends State<Profile> {
       ),
     );
   }
+  showCountryDialogCallBack({@required BuildContext context}) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(15))),
+            contentPadding: EdgeInsets.symmetric(vertical: 5),
+            content: Container(
+              width: double.maxFinite,
+              child: Container(
+                height: ((45 * countryData.country.length)).toDouble(),
+                child: ListView.builder(
+                  physics: new ClampingScrollPhysics(),
+                  shrinkWrap: true,
+                  itemBuilder: (BuildContext context1, int i) {
+                    return InkWell(onTap: (){
+                      setState(() {
 
-  getCountryWidget() {
-    List<PickerItem<dynamic>> countryWidget = [];
-
-    for (int i = 0; i < countryData.country.length; i++) {
-      countryWidget.add(PickerItem(
-          text: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                height: 20,
-                width: (20 * 512) / 342,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(countryData.country[i]["image"]),
-                    fit: BoxFit.cover,
-                  ),
+                        selectedCountry = i;
+                        Navigator.pop(context);
+                      });
+                    },
+                      child: Container(
+                        child: Column(
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  left: 20, right: 20, top: 10, bottom: 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  Flag(countryData.country[i]["flag"], width: 25,fit: BoxFit.contain,),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      countryData.country[i]["countries_name"],
+                                      style: TextStyle(
+                                          color: Colors.black, fontSize: 15),
+                                    ),
+                                  ),
+                                  i == selectedCountry ? Icon(Icons.check,
+                                      color: ColorsHelper.themeColor, size: 20) : Container()
+                                ],
+                              ),
+                            ),
+                            Container(
+                              height: i == countryData.country.length - 1 ? 0 : 1,
+                              color: Colors.black45,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  itemCount: countryData.country.length,
                 ),
               ),
-              SizedBox(
-                width: 10,
+            ),
+          );
+        });
+  }
+  showTimezoneDialogCallBack({@required BuildContext context}) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(15))),
+            contentPadding: EdgeInsets.symmetric(vertical: 5),
+            content: Container(
+              width: double.maxFinite,
+              child: Container(
+                height: ((45 * timezoneData.timezone.length)).toDouble(),
+                child: ListView.builder(
+                  physics: new ClampingScrollPhysics(),
+                  shrinkWrap: true,
+                  itemBuilder: (BuildContext context1, int i) {
+                    return InkWell(onTap: (){
+                      setState(() {
+
+                        selectedTimezone = i;
+                        Navigator.pop(context);
+                      });
+                    },
+                      child: Container(
+                        child: Column(
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.only(
+                                  left: 10, right: 10, top: 10, bottom: 10),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  Container(
+                                    height: 25,
+                                   width: 1,
+                                  ),
+
+                                  Expanded(
+                                    child: Text(
+                                      timezoneData.timezone[i]["name"],
+                                      style: TextStyle(
+                                          color: Colors.black, fontSize: 15),overflow: TextOverflow.ellipsis,maxLines: 1,
+                                    ),
+                                  ),
+                                  i == selectedTimezone ? Icon(Icons.check,
+                                      color: ColorsHelper.themeColor, size: 20) : Container()
+                                ],
+                              ),
+                            ),
+                            Container(
+                              height: i == timezoneData.timezone.length - 1 ? 0 : 1,
+                              color: Colors.black45,
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  itemCount: timezoneData.timezone.length,
+                ),
               ),
-              Text(
-                countryData.country[i]["name"],
-                style: TextStyle(color: Colors.black, fontSize: 17),
-              )
-            ],
-          ),
-          value: i.toString()));
-    }
-    return countryWidget;
+            ),
+          );
+        });
   }
 
-  showCountryPicker(BuildContext context) {
-    Picker(
-            adapter: PickerDataAdapter(data: getCountryWidget()),
-            height: 190,
-            title: Text("Select Country",
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 17)),
-            confirmTextStyle: TextStyle(
-                color: ColorsHelper.themeColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 17),
-            cancelTextStyle: TextStyle(
-                color: ColorsHelper.themeColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 17),
-            selectedTextStyle: TextStyle(color: Colors.blue),
-            onConfirm: (Picker picker, List value) {
-              selectedCountry = value[0];
-              setState(() {});
-              print(value[0]);
-              print(picker.getSelectedValues()[0]);
-            },
-            magnification: 1.2,
-            selecteds: [selectedCountry == -1 ? 0 : selectedCountry])
-        .show(_scaffoldKey.currentState);
-  }
-
-  getTimezoneWidget() {
-    List<PickerItem<dynamic>> countryWidget = [];
-
-    for (int i = 0; i < timezoneData.timezone.length; i++) {
-      countryWidget.add(PickerItem(
-          text: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                timezoneData.timezone[i]["name"],
-                style: TextStyle(color: Colors.black, fontSize: 17),
-              )
-            ],
-          ),
-          value: i.toString()));
-    }
-    return countryWidget;
-  }
-
-  showTimezonePicker(BuildContext context) {
-    Picker(
-            adapter: PickerDataAdapter(data: getTimezoneWidget()),
-            height: 190,
-            title: Text("Select Timezone",
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 17)),
-            confirmTextStyle: TextStyle(
-                color: ColorsHelper.themeColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 17),
-            cancelTextStyle: TextStyle(
-                color: ColorsHelper.themeColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 17),
-            selectedTextStyle: TextStyle(color: Colors.blue),
-            onConfirm: (Picker picker, List value) {
-              selectedTimezone = value[0];
-              setState(() {});
-              print(value[0]);
-              print(picker.getSelectedValues()[0]);
-            },
-            magnification: 1.2,
-            selecteds: [selectedTimezone == -1 ? 0 : selectedTimezone])
-        .show(_scaffoldKey.currentState);
-  }
 }

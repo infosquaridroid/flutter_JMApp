@@ -33,8 +33,7 @@ class MyApp extends StatelessWidget {
               future: SharePreferencesHelper.getInstant()
                   .getString(SharePreferencesHelper.SHAREPREFERENCES_USER_ID),
               builder: (BuildContext context, AsyncSnapshot snapshot) {
-                print(snapshot.data);
-                print(snapshot.hasData);
+
                 if (snapshot.hasData) {
                   return snapshot.data == "" ? Login() : Bottombar();
                 } else {

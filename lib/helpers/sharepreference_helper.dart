@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SharePreferencesHelper {
   static SharePreferencesHelper sharePreferenceHelper;
   static const String SHAREPREFERENCES_USER_ID = 'user_id';
+  static const String SHAREPREFERENCES_USER_Data = 'user_data';
   static SharePreferencesHelper getInstant() {
     if (sharePreferenceHelper == null) {
       sharePreferenceHelper = new SharePreferencesHelper();

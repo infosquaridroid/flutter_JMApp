@@ -38,6 +38,9 @@ class OtpState extends State<Otp> {
         .of(context)
         .apiRepos
         .lastLogin(context: context, user_id:widget.userId);
+    SharePreferencesHelper.getInstant().setString(
+        SharePreferencesHelper.SHAREPREFERENCES_USER_ID,
+        widget.userId);
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -52,10 +55,10 @@ class OtpState extends State<Otp> {
       appBar: AppBar(
         title: Image.asset(
           ImageAssets.main_icon,
-          width: 150,
+          height: 40,
           fit: BoxFit.contain,
         ),
-        backgroundColor: ColorsHelper.themeColor,
+        backgroundColor: ColorsHelper.headerColor,
         actions: [
           Container(
             padding: EdgeInsets.only(right: 10),
@@ -101,8 +104,8 @@ class OtpState extends State<Otp> {
       },
         child: Container(
           height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          child: SafeArea(
+        width: MediaQuery.of(context).size.width,color: ColorsHelper.bodyColor,
+        child: SafeArea(
             child: ListView(
               physics: new ClampingScrollPhysics(),
               children: <Widget>[
@@ -117,7 +120,7 @@ class OtpState extends State<Otp> {
                         style: TextStyle(
                             color: Colors.black, fontSize: 15),
                         children: <TextSpan>[
-                          TextSpan(text: widget.countryCode + " " + widget.mobileNo,
+                          TextSpan(text: widget.countryCode + " " + (widget.countryCode == "+61" ? widget.mobileNo.substring(1) : widget.mobileNo),
                               style: TextStyle(
                                   color: Colors.black,fontWeight: FontWeight.bold, fontSize: 15),
 
@@ -138,7 +141,7 @@ class OtpState extends State<Otp> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Text(
-                    'OTP',
+                    'Enter the 6 digit code',
                     textAlign: TextAlign.left,
                     style: TextStyle(
                         color: Colors.black,
@@ -146,25 +149,18 @@ class OtpState extends State<Otp> {
                         fontSize: 17),
                   ),
                 ),
+
                 Container(
                   padding: const EdgeInsets.only(left: 20, right: 20, top: 5),
-                  child: Container(padding: const EdgeInsets.only(left: 10,right: 10),width: MediaQuery.of(context).size.width-40,
-                    child: Center(
-                      child: TextField(keyboardType: TextInputType.number,
-                        focusNode: _focus,style: TextStyle(
-                        fontWeight: FontWeight.w500
-                      ),
-                        cursorColor: ColorsHelper.themeColor,controller: txtOtp,
-                        decoration: InputDecoration(border: InputBorder.none,hintText: "Enter the 6 digit code"),),
-                    ),
-                    decoration: BoxDecoration(
-                        border: Border.all(
-                          color: ColorsHelper
-                              .themeColor, //                   <--- border color
-                          width: 1.0,
-                        ),
-                        borderRadius: BorderRadius.circular(5)),
-                    height: 40,
+                  child: PinTextFieldFocus(
+                    controller: txtOtp,
+                    txtStyle: TextStyle(
+                        fontSize: 25,
+                        color: Colors.black),
+                    save: (val) {
+                      setState(() {});
+                      print(val);
+                    },focus: _focus,
                   ),
                 ),
                 SizedBox(height: 15,),

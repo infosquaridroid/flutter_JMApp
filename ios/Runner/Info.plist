@@ -39,5 +39,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>UIUserInterfaceStyle</key>
+	<string>Dark</string>
+	<key>NSFaceIDUsageDescription</key>
+    <string>Please authorize to use the app</string>
 </dict>
 </plist>

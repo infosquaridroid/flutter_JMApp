@@ -13,14 +13,47 @@ import 'package:uni_links/uni_links.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'colors.dart';
 import 'package:jmapp/helpers/font_constant.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 class Utility {
   static VoidCallback onPosClick, onNavClick;
 
   static Color hexToColor(String code) {
     return new Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
   }
-
   static showAlertDialogCallBack({@required BuildContext context,
+  var message = 'Something went wrong'}){
+//    Fluttertoast.showToast(
+//        msg: message,
+//        toastLength:Toast.LENGTH_SHORT,
+//        gravity: ToastGravity.BOTTOM,
+//        timeInSecForIosWeb: 2,
+//        backgroundColor: hexToColor('#000000').withAlpha(150),
+//        textColor: Colors.white,
+//        fontSize: 16.0,
+//    );
+     FToast fToast = FToast(context);
+
+    fToast.showToast(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 15.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25.0),
+          color: Colors.black.withAlpha(150),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            
+            Text(message,style: TextStyle(color: Colors.white,fontSize: 15)),
+          ],
+        ),
+      ),
+      gravity: ToastGravity.BOTTOM,
+      toastDuration: Duration(seconds: 2),
+    );
+  }
+  static showAlertDialogCallBack1({@required BuildContext context,
     onPosClick,
     onNavClick,
     onOkClick,

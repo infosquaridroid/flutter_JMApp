@@ -69,4 +69,44 @@ class APIRepos {
 
     return (response != null) ? json.decode(response.body) : null;
   }
+  Future<Map<String, dynamic>> searchOrganisation({BuildContext context,bool isProgressBar = true,bool isBackground = false,String keyword = ""}) async {
+    http.Response response = await DataManagerInheritedWidget.of(context)
+        .apiClient
+        .postAPI(
+        context: context,
+        isProgressBar: isProgressBar,isBackground: isBackground,
+        urlPath: '/index/searchorganisation',requestData: {"keyword":keyword});
+
+    return (response != null) ? json.decode(response.body) : null;
+  }
+  Future<Map<String, dynamic>> favouriteOrganisation({BuildContext context,bool isProgressBar = true,bool isBackground = false,String userId = ""}) async {
+    http.Response response = await DataManagerInheritedWidget.of(context)
+        .apiClient
+        .postAPI(
+        context: context,
+        isProgressBar: isProgressBar,isBackground: isBackground,
+        urlPath: '/index/getfavoriteorganisation',requestData: {"user_id":userId});
+
+    return (response != null) ? json.decode(response.body) : null;
+  }
+  Future<Map<String, dynamic>> getOrganisationDetail({BuildContext context,bool isProgressBar = true,bool isBackground = false,String userId = "",String organisationId = ""}) async {
+    http.Response response = await DataManagerInheritedWidget.of(context)
+        .apiClient
+        .postAPI(
+        context: context,
+        isProgressBar: isProgressBar,isBackground: isBackground,
+        urlPath: '/index/getorganisationdetail',requestData: {"user_id":userId,"organisation_id":organisationId});
+
+    return (response != null) ? json.decode(response.body) : null;
+  }
+  Future<Map<String, dynamic>> setFavUnfavOrganisation({BuildContext context,bool isProgressBar = true,bool isBackground = false,String userId = "",String organisationId = "",String isFavourite = "0"}) async {
+    http.Response response = await DataManagerInheritedWidget.of(context)
+        .apiClient
+        .postAPI(
+        context: context,
+        isProgressBar: isProgressBar,isBackground: isBackground,
+        urlPath: isFavourite == "0" ? '/index/unfavorite' : '/index/favorite',requestData: {"user_id":userId,"organisation_id":organisationId});
+
+    return (response != null) ? json.decode(response.body) : null;
+  }
 }

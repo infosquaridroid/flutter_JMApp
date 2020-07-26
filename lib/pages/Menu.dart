@@ -34,12 +34,12 @@ class MenuState extends State<Menu> {
           'Menu',
           style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: ColorsHelper.themeColor,
+        backgroundColor: ColorsHelper.headerColor,
         leading: Container(),
       ),
       body: Container(
         height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
+        width: MediaQuery.of(context).size.width,color: ColorsHelper.bodyColor,
         child: SafeArea(
           child: ListView(
             physics: new ClampingScrollPhysics(),
@@ -211,7 +211,7 @@ SizedBox(height: 50,),
                 color: Colors.black45,
               ),
               InkWell(onTap: (){
-                SharePreferencesHelper.getInstant().removePref(SharePreferencesHelper.SHAREPREFERENCES_USER_ID);
+//                SharePreferencesHelper.getInstant().removePref(SharePreferencesHelper.SHAREPREFERENCES_USER_ID);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(

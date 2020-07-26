@@ -7,8 +7,10 @@ import 'package:jmapp/helpers/colors.dart';
 import 'package:jmapp/helpers/font_constant.dart';
 import 'package:jmapp/helpers/image_constant.dart';
 import 'package:jmapp/helpers/sharepreference_helper.dart';
+import 'package:jmapp/pages/Favourite.dart';
 import 'package:jmapp/pages/Home.dart';
 import 'package:jmapp/pages/Menu.dart';
+import 'package:jmapp/pages/Search.dart';
 import 'package:jmapp/pages/SignupDetail.dart';
 
 class Bottombar extends StatefulWidget {
@@ -21,14 +23,15 @@ class Bottombar extends StatefulWidget {
 class BottombarState extends State<Bottombar> {
    List<Widget> _children;
    int _currentIndex = 0;
-  @override
+
+   @override
   void initState() {
     // TODO: implement initState
     super.initState();
      _children = [
        Home(),
-       Container(),
-       Container(),
+       Favourite( ),
+       Search(),
        Container(),
        Menu()
     ];
@@ -56,16 +59,16 @@ class BottombarState extends State<Bottombar> {
             title: Text('Favourites',style: TextStyle(fontSize: 13)),
           ),
           new BottomNavigationBarItem(
-              icon: Icon(Icons.autorenew),
-              title: Text('Recurring',style: TextStyle(fontSize: 13))
+              icon: Icon(Icons.search),
+              title: Text('Search',style: TextStyle(fontSize: 13))
+          ),
+          new BottomNavigationBarItem(
+              icon: Icon(Icons.notifications),
+              title: Text('Notification',style: TextStyle(fontSize: 13))
           ),
           new BottomNavigationBarItem(
               icon: Icon(Icons.more_vert),
-              title: Text('Transaction',style: TextStyle(fontSize: 13))
-          ),
-          new BottomNavigationBarItem(
-              icon: Icon(Icons.menu),
-              title: Text('Menu',style: TextStyle(fontSize: 13))
+              title: Text('More',style: TextStyle(fontSize: 13))
           )
         ],
       ),
